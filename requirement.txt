@@ -1,0 +1,3 @@
+youtube-search-python
+google-api-python-client
+youtube_transcript_api
