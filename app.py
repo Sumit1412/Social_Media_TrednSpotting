@@ -8,6 +8,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
 import base64
+import os
 import re
 
 
@@ -32,7 +33,7 @@ def generate_donut_chart(positivity_percentage, negativity_percentage):
 LOGO_IMAGE = "yt.png"
 api_service_name = "youtube"
 api_version = "v3"
-DEVELOPER_KEY = "AIzaSyBs9dkAjpmmguc5YRjaU7CLfUmVFHfS-vM"
+DEVELOPER_KEY = os.environ["YouTube_API_KEY"]
 
 
 st.markdown(
@@ -72,12 +73,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-def search_videos(query,api_service_name = "youtube",api_version = "v3",DEVELOPER_KEY = "AIzaSyBs9dkAjpmmguc5YRjaU7CLfUmVFHfS-vM"):
+def search_videos(query,api_service_name = "youtube",api_version = "v3",DEVELOPER_KEY = DEVELOPER_KEY):
     trans_df = yt.extract_youtube_info(query,api_service_name,api_version,DEVELOPER_KEY)
     return trans_df
     # st.write(f"Searching videos for: {title_df}")
 
-def search_comments(query,api_service_name = "youtube",api_version = "v3",DEVELOPER_KEY = "AIzaSyBs9dkAjpmmguc5YRjaU7CLfUmVFHfS-vM"):
+def search_comments(query,api_service_name = "youtube",api_version = "v3",DEVELOPER_KEY = DEVELOPER_KEY):
     comments_df = yt.extract_comments(query,api_service_name,api_version,DEVELOPER_KEY)
     return comments_df
     # st.write(f"Searching videos for: {title_df}")

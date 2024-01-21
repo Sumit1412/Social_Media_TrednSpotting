@@ -1,6 +1,7 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
+import os
 nltk.download('stopwords')
 nltk.download('punkt')
 import openai
@@ -11,7 +12,7 @@ from langchain.output_parsers import StructuredOutputParser
 from langchain_openai import ChatOpenAI
 from extract_youtube import youTubeData as yt
 
-openai.api_key = "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"
+openai.api_key = os.environ["OPENAI_API_KEY"]
 gpt_model="gpt-3.5-turbo-16k-0613"
 chat = ChatOpenAI(temperature=0.0, openai_api_key = openai.api_key)
 
