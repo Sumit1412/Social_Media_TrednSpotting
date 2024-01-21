@@ -1,3 +1,10 @@
 youtube-search-python
 google-api-python-client
 youtube_transcript_api
+langchain
+cohere
+tiktoken
+openai
+langchain_openai
+nltk
+streamlit

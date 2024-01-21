@@ -3,46 +3,108 @@ from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 import pandas as pd
 
-KeyWord = "String Energy Drink"
-top_video = 1
 
-videosSearch = VideosSearch(KeyWord+' Review', limit = top_video)
-reponse_dict =  videosSearch.result()
 
-results= []
+class youTubeData:
+    @staticmethod
+    def extract_youtube_info(SerachString,api_service_name,api_version,DEVELOPER_KEY):
+        KeyWord = SerachString
+        top_video = 5
+        videosSearch = VideosSearch(KeyWord+' Review', limit = top_video)
+        reponse_dict =  videosSearch.result()
 
-for item in reponse_dict['result']:
-    result = item
-    results.append([
-        result['type'],
-        result['id']]
-    )
-df = pd.DataFrame(results, columns=['type', 'id'])
+        # Create YouTube Object
+        youtube = build(api_service_name, api_version,
+                        developerKey=DEVELOPER_KEY)
 
-df
-# for i in range(0,len(reponse_dict['result'])):
-#     print(reponse_dict['result'][i]['type'])
-#     print(reponse_dict['result'][i]['id'])
-#     print(reponse_dict['result'][i]['title'])
-#     print(reponse_dict['result'][i]['publishedTime'])
-#     print(reponse_dict['result'][i]['duration'])
-#     print(reponse_dict['result'][i]['viewCount']['text'])
-#     print(reponse_dict['result'][i]['viewCount']['short'])
-#     print(reponse_dict['result'][i]['descriptionSnippet'])
-#     print(reponse_dict['result'][i]['channel']['name'])
-#     print(reponse_dict['result'][i]['channel']['id']) 
-#     print(reponse_dict['result'][i]['accessibility']['title'])
-#     print(reponse_dict['result'][i]['link'])
-#     print(reponse_dict['result'][i]['shelfTitle'])
-#     try:
-#         YouTubeTranscriptApi.get_transcript(reponse_dict['result'][i]['id'])
-#         transcript = YouTubeTranscriptApi.get_transcript(reponse_dict['result'][i]['id'])
-#         trns_result = ""
-#         for i in transcript:
-#             trns_result += ' ' + i['text']
-#         print(len(trns_result))
-#     except:
-#         trns_result = "No transcript available"
-#     print(trns_result)
+
+        results= []
+
+        for item in reponse_dict['result']:
+            result = item
+            try:
+                transcript = YouTubeTranscriptApi.get_transcript(result['id'])
+                trns_result = ""
+                for i in transcript:
+                    trns_result += ' ' + i['text']
+            except:
+                trns_result = "No transcript available"
+
+            ch_request = youtube.channels().list(
+            part='statistics',
+            id=result['channel']['id'])
+
+
+            ch_response = ch_request.execute()
+
+            sub = ch_response['items'][0]['statistics']['subscriberCount']
+            vid = ch_response['items'][0]['statistics']['videoCount']
+            views = ch_response['items'][0]['statistics']['viewCount']
+
+            results.append([
+                result['type'],
+                result['id'],
+                result['title'],
+                result['publishedTime'],
+                result['duration'],
+                result['viewCount']['text'],
+                result['viewCount']['short'],
+                result['descriptionSnippet'],
+                result['channel']['name'],
+                result['channel']['id'],
+                result['link'],
+                trns_result,
+                sub,
+                vid,
+                views
+                ]
+            )
+        detailed_df = pd.DataFrame(results, columns=['type', 'Video_id', 'title', 'publishedTime', 'duration', 'text', 'short', \
+                                            'descriptionSnippet', 'name', 'Channel_id', 'link','trns_result',\
+                                            'Subscriber','Videos_Count','Channel_Views'])
+        return detailed_df
     
+    
+    @staticmethod
+    def extract_comments(SerachString,api_service_name,api_version,DEVELOPER_KEY):
+        KeyWord = SerachString
+        top_video = 5
+        videosSearch = VideosSearch(KeyWord+' Review', limit = top_video)
+        reponse_dict =  videosSearch.result()
+        api_service_name = api_service_name
+        api_version = api_version
+        DEVELOPER_KEY = DEVELOPER_KEY
+        all_comments = []
+        df = pd.DataFrame(all_comments, columns=['author', 'published_at', 'updated_at', 'like_count', 'text','Video_id'])
+        for item in reponse_dict['result']:
+            result = item
+            youtube = build(
+            api_service_name, api_version, developerKey=DEVELOPER_KEY)
+            try:
+                request = youtube.commentThreads().list(
+                    part="snippet",
+                    videoId=result['id'],
+                    maxResults=10000
+                )
+                response = request.execute()
+
+                comments = []
+
+                for item in response['items']:
+                    comment = item['snippet']['topLevelComment']['snippet']
+                    comments.append([
+                        comment['authorDisplayName'],
+                        comment['publishedAt'],
+                        comment['updatedAt'],
+                        comment['likeCount'],
+                        comment['textDisplay'],
+                        result['id']
+                    ])
+                    data = pd.DataFrame(comments, columns=['author', 'published_at', 'updated_at', 'like_count', 'text','Video_id'])
+            except:
+                pass
+            df = pd.concat([df,data],ignore_index=True)
+
+        return df
+
 
